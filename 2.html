@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>elevare - Wartungs- & Prüfprotokoll</title>
+    <style>
+        :root {
+            --primary: #111827;
+            --accent: #ea580c;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- LOGIN BEREICH --- */
+        .login-wrapper {
+            max-width: 440px;
+            margin: 60px auto;
+            background: var(--card-bg);
+            padding: 35px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 5px solid var(--primary);
+        }
+        .login-wrapper h2 {
+            margin: 20px 0 8px 0;
+            color: var(--primary);
+            font-size: 20px;
+        }
+        .login-wrapper p {
+            color: #64748b;
+            font-size: 13.5px;
+            margin-bottom: 24px;
+        }
+        .login-wrapper .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        /* --- APP ANSICHT --- */
+        .app-view {
+            display: none;
+            max-width: 980px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .header-box {
+            border-bottom: 2.5px solid var(--primary);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .user-badge {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+        
+        .step-indicator {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+        .step-badge {
+            flex: 1;
+            min-width: 115px;
+            text-align: center;
+            padding: 9px 6px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .step-badge.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        h3 {
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            font-size: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #334155;
+        }
+        input[type="text"], input[type="password"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        /* Auswahlbox Wartung / Wiederkehrende Prüfung */
+        .type-select-box {
+            background: #f8fafc;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .type-select-box label.check-big {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            margin: 0;
+        }
+        .type-select-box input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        table.check-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+        table.check-table th, table.check-table td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            font-size: 13.5px;
+        }
+        table.check-table th {
+            background-color: #f8fafc;
+            color: var(--primary);
+            text-align: left;
+        }
+        .num-col {
+            width: 38px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary);
+            background: #f8fafc;
+        }
+        .status-cell {
+            text-align: center;
+            white-space: nowrap;
+            width: 220px;
+        }
+        .status-cell label {
+            display: inline-block;
+            margin: 0 5px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button.accent { background-color: var(--accent); font-size: 15px; }
+        button.secondary { background-color: #64748b; }
+        button.outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; font-size: 12px; }
+        button:hover { opacity: 0.92; }
+
+        .import-modal {
+            display: none;
+            background: #f8fafc;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            width: 100%;
+            height: 130px;
+            touch-action: none;
+        }
+
+        /* --- DRUCK-PROTOKOLL ANSICHT (DIN A4) --- */
+        .print-report { display: none; }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 9mm 10mm;
+            }
+            body {
+                background: #ffffff;
+                padding: 0;
+                margin: 0;
+                color: #000;
+                font-size: 8.5pt;
+            }
+            .login-wrapper, .app-view { display: none !important; }
+            .print-report { display: block !important; width: 100%; }
+            
+            .report-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+            }
+            .report-title-box { text-align: right; }
+            .report-title-box h1 {
+                margin: 0;
+                font-size: 13pt;
+                color: #000;
+                text-transform: uppercase;
+            }
+            .report-type-row {
+                display: flex;
+                gap: 25px;
+                justify-content: flex-end;
+                margin-top: 5px;
+                font-size: 9.5pt;
+                font-weight: bold;
+            }
+            .meta-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 8px;
+                font-size: 8pt;
+            }
+            .meta-table td {
+                border: 1px solid #64748b;
+                padding: 3px 6px;
+            }
+            .meta-label {
+                background-color: #f1f5f9 !important;
+                font-weight: bold;
+                width: 16%;
+                color: #000;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .meta-val { width: 34%; }
+            
+            .report-check-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 8pt;
+                margin-bottom: 8px;
+            }
+            .report-check-table th, .report-check-table td {
+                border: 1px solid #64748b;
+                padding: 2.5px 5px;
+            }
+            .report-check-table th {
+                background-color: #111827 !important;
+                color: #ffffff !important;
+                text-align: left;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .report-cat-row td {
+                background-color: #e2e8f0 !important;
+                font-weight: bold;
+                color: #000;
+                padding: 3.5px 6px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .badge-io { color: #15803d; font-weight: bold; }
+            .badge-mangel { color: #b91c1c; font-weight: bold; }
+            .badge-nv { color: #64748b; }
+            
+            .report-footer {
+                margin-top: 8px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                page-break-inside: avoid;
+            }
+            .sig-box {
+                border: 1px solid #64748b;
+                padding: 6px;
+                min-height: 75px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            .sig-box img {
+                max-height: 50px;
+                max-width: 190px;
+                object-fit: contain;
+            }
+            .company-footer {
+                margin-top: 8px;
+                border-top: 1px solid #94a3b8;
+                padding-top: 4px;
+                font-size: 7.5pt;
+                color: #475569;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== 0. LOGIN BEREICH ==================== -->
+<div class="login-wrapper" id="loginView">
+    <!-- Originalgetreues ELEVARE Logo (Quadrat mit Kranhaken + Schriftzug) -->
+    <div style="display:flex; justify-content:center;">
+        <svg width="240" height="70" viewBox="0 0 330 95" xmlns="http://www.w3.org/2000/svg">
+            <!-- Äußerer Rahmen mit Lücke rechts -->
+            <path d="M 78 26 L 78 10 L 10 10 L 10 82 L 78 82 L 78 66" fill="none" stroke="#111827" stroke-width="5.5" stroke-linecap="square"/>
+            <!-- Kranflasche & Haken innen -->
+            <line x1="41" y1="12" x2="41" y2="28" stroke="#111827" stroke-width="3"/>
+            <line x1="47" y1="12" x2="47" y2="28" stroke="#111827" stroke-width="3"/>
+            <path d="M 35 28 L 53 28 L 49 42 L 39 42 Z" fill="#111827"/>
+            <path d="M 44 42 L 44 48 C 44 51, 36 53, 36 61 C 36 69, 45 72, 50 67 C 53 64, 52 59, 49 57" fill="none" stroke="#111827" stroke-width="4.5" stroke-linecap="round"/>
+            <!-- elevare Schriftzug im abgerundeten Industrial-Stil -->
+            <text x="92" y="65" font-family="'Trebuchet MS', 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="bold" fill="#111827" letter-spacing="1">elevare</text>
+        </svg>
+    </div>
+    <h2>Prüfer-Anmeldung</h2>
+    <p>Bitte anmelden. Dein Name wird automatisch in das Prüfprotokoll und unter die Unterschrift übernommen.</p>
+
+    <div class="form-group">
+        <label>Benutzer / Prüfer auswählen oder eingeben:</label>
+        <input type="text" id="loginUser" list="techList" value="Rawaz Mohammad" placeholder="Vorname Nachname">
+        <datalist id="techList">
+            <option value="Rawaz Mohammad">
+        </datalist>
+    </div>
+    <div class="form-group">
+        <label>PIN / Passwort (optional):</label>
+        <input type="password" id="loginPin" placeholder="••••">
+    </div>
+    <button class="accent" style="width:100%; margin-top:10px; padding:13px;" onclick="performLogin()">Anmelden & Checkliste starten &rarr;</button>
+</div>
+
+<!-- ==================== HAUPT-APP ANSICHT ==================== -->
+<div class="app-view" id="appView">
+    <div class="header-box">
+        <!-- LOGO OBEN LINKS -->
+        <div style="display:flex; align-items:center; gap:15px;">
+            <svg id="defaultLogoSvg" width="210" height="60" viewBox="0 0 330 95" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 78 26 L 78 10 L 10 10 L 10 82 L 78 82 L 78 66" fill="none" stroke="#111827" stroke-width="5.5" stroke-linecap="square"/>
+                <line x1="41" y1="12" x2="41" y2="28" stroke="#111827" stroke-width="3"/>
+                <line x1="47" y1="12" x2="47" y2="28" stroke="#111827" stroke-width="3"/>
+                <path d="M 35 28 L 53 28 L 49 42 L 39 42 Z" fill="#111827"/>
+                <path d="M 44 42 L 44 48 C 44 51, 36 53, 36 61 C 36 69, 45 72, 50 67 C 53 64, 52 59, 49 57" fill="none" stroke="#111827" stroke-width="4.5" stroke-linecap="round"/>
+                <text x="92" y="65" font-family="'Trebuchet MS', 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="bold" fill="#111827" letter-spacing="1">elevare</text>
+            </svg>
+            <img id="customLogoApp" src="" style="display:none; max-height: 58px; max-width: 230px;" alt="elevare Logo">
+        </div>
+
+        <div style="text-align: right; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <div class="user-badge">
+                <span>👤 Angemeldet: <strong id="displayLoggedUser">Rawaz Mohammad</strong></span>
+                <button class="outline" style="padding:3px 8px; font-size:11px;" onclick="logout()">Wechseln</button>
+            </div>
+            <div>
+                <button class="outline" onclick="toggleImportModal()">📋 Punkte 1–44 anpassen</button>
+                <label style="display:inline-block; margin-left: 6px; cursor:pointer; font-size:12px; color:var(--primary); border:1px solid var(--primary); padding:5px 10px; border-radius:6px;">
+                    🖼️ Original-Logo Datei laden
+                    <input type="file" accept="image/*" style="display:none;" onchange="loadCustomLogo(event)">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXCEL TEXT EDITOR MODAL -->
+    <div class="import-modal" id="importModal">
+        <h4 style="margin-top:0;">Prüfpunkte 1 bis 44 bearbeiten</h4>
+        <p style="font-size:12.5px; margin-bottom:8px;">
+            Hier sind die 44 Punkte exakt nach deiner Einteilung (1–13, 14–21, 22–32, 33–38, 39–43, 44). Du kannst jeden Text hier direkt anpassen – die Einteilung in die Kategorien erfolgt automatisch über die Zeilennummer:
+        </p>
+        <textarea id="excelInputArea" rows="14" style="font-family: monospace; font-size: 12.5px;"></textarea>
+        <div style="margin-top:10px; display:flex; gap:10px; justify-content:flex-end;">
+            <button class="secondary" onclick="resetDefaultItems()">Standard wiederherstellen</button>
+            <button class="accent" onclick="saveCustomItems()">✅ Speichern & Übernehmen</button>
+        </div>
+    </div>
+
+    <!-- SCHRITT-NAVIGATION -->
+    <div class="step-indicator">
+        <div class="step-badge active" id="badge-1" onclick="nextStep(1)">1. Stammdaten</div>
+        <div class="step-badge" id="badge-2" onclick="nextStep(2)">Kat. 1 (Pkt. 1–13)</div>
+        <div class="step-badge" id="badge-3" onclick="nextStep(3)">Kat. 2 (Pkt. 14–21)</div>
+        <div class="step-badge" id="badge-4" onclick="nextStep(4)">Kat. 3 (Pkt. 22–32)</div>
+        <div class="step-badge" id="badge-5" onclick="nextStep(5)">Kat. 4 (Pkt. 33–38)</div>
+        <div class="step-badge" id="badge-6" onclick="nextStep(6)">Kat. 5 & 44 + Schmierdienst</div>
+        <div class="step-badge" id="badge-7" onclick="nextStep(7)">Abschluss & PDF</div>
+    </div>
+
+    <!-- ==================== SEITE 1: ART DER PRÜFUNG & STAMMDATEN ==================== -->
+    <div id="step-1" class="step active">
+        <h3>Art der Durchführung & Anlagen-Stammdaten</h3>
+        
+        <!-- GANZ AM ANFANG ZUM ANKREUZEN: WARTUNG / WIEDERKEHRENDE PRÜFUNG -->
+        <div class="type-select-box">
+            <span style="font-weight:700; font-size:14px; color:#475569;">Art der Durchführung (bitte ankreuzen):</span>
+            <label class="check-big">
+                <input type="checkbox" id="chk_wartung" checked> Wartung
+            </label>
+            <label class="check-big">
+                <input type="checkbox" id="chk_pruefung" checked> Wiederkehrende Prüfung
+            </label>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Kunde / Betreiber:</label>
+                <input type="text" id="p_custName" value="Siemens Mobility GmbH">
+            </div>
+            <div class="form-group">
+                <label>Standort / Halle:</label>
+                <input type="text" id="p_custLoc" placeholder="z.B. Halle 220 / 310 / 340">
+            </div>
+            <div class="form-group">
+                <label>Datum:</label>
+                <input type="date" id="p_checkDate">
+            </div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Kran-Nr. / Equipment-Nr. / Pos.:</label>
+                <input type="text" id="p_craneNo" placeholder="z.B. Kran 1 / EQ-Nr.">
+            </div>
+            <div class="form-group">
+                <label>Bauart / Krantyp:</label>
+                <input type="text" id="p_craneType" placeholder="z.B. Brückenkran / Schwenkkran">
+            </div>
+            <div class="form-group">
+                <label>Hersteller / Fabrikat:</label>
+                <input type="text" id="p_craneBrand" placeholder="z.B. SWF / Demag / Konecranes / Abus">
+            </div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Fabrik-Nr. / Seriennummer:</label>
+                <input type="text" id="p_craneSerial" placeholder="Werk-Nr.">
+            </div>
+            <div class="form-group">
+                <label>Tragfähigkeit (t / kg):</label>
+                <input type="text" id="p_capacity" placeholder="z.B. 5.000 kg">
+            </div>
+            <div class="form-group">
+                <label>Baujahr:</label>
+                <input type="text" id="p_year" placeholder="z.B. 2019">
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Hubwerk / Steuerung:</label>
+                <input type="text" id="p_hoistType" placeholder="z.B. Seilzug / Kettenzug / Funksteuerung">
+            </div>
+            <div class="form-group">
+                <label>Prüfer (automatisch aus Login):</label>
+                <input type="text" id="p_techName" readonly style="background:#f1f5f9; font-weight:bold;">
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <div></div>
+            <button onclick="nextStep(2)">Weiter zu Kategorie 1 (Punkte 1–13) &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 2: KATEGORIE 1 (Punkte 1 - 13) ==================== -->
+    <div id="step-2" class="step">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="flex:1; margin-right:15px;">Kategorie 1: Prüfpunkte 1 – 13 (Kranbahn, Kranbrücke & Kranfahrwerk)</h3>
+            <button class="outline" onclick="setSectionStatus('tbody-cat1', 'i.O.')">Alle 1–13 auf i.O.</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat1"></tbody>
+        </table>
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(1)">&larr; Zurück</button>
+            <button onclick="nextStep(3)">Weiter zu Kategorie 2 (Punkte 14–21) &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 3: KATEGORIE 2 (Punkte 14 - 21) ==================== -->
+    <div id="step-3" class="step">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="flex:1; margin-right:15px;">Kategorie 2: Prüfpunkte 14 – 21 (Katzfahrwerk & Katzstromzuführung)</h3>
+            <button class="outline" onclick="setSectionStatus('tbody-cat2', 'i.O.')">Alle 14–21 auf i.O.</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat2"></tbody>
+        </table>
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(2)">&larr; Zurück</button>
+            <button onclick="nextStep(4)">Weiter zu Kategorie 3 (Punkte 22–32) &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 4: KATEGORIE 3 (Punkte 22 - 32) ==================== -->
+    <div id="step-4" class="step">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="flex:1; margin-right:15px;">Kategorie 3: Prüfpunkte 22 – 32 (Hubwerk, Tragmittel & Lastaufnahmemittel)</h3>
+            <button class="outline" onclick="setSectionStatus('tbody-cat3', 'i.O.')">Alle 22–32 auf i.O.</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat3"></tbody>
+        </table>
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(3)">&larr; Zurück</button>
+            <button onclick="nextStep(5)">Weiter zu Kategorie 4 (Punkte 33–38) &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 5: KATEGORIE 4 (Punkte 33 - 38) ==================== -->
+    <div id="step-5" class="step">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="flex:1; margin-right:15px;">Kategorie 4: Prüfpunkte 33 – 38 (Elektrische Ausrüstung & Steuerung)</h3>
+            <button class="outline" onclick="setSectionStatus('tbody-cat4', 'i.O.')">Alle 33–38 auf i.O.</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat4"></tbody>
+        </table>
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(4)">&larr; Zurück</button>
+            <button onclick="nextStep(6)">Weiter zu Kat. 5 (39–43), Pkt. 44 & Schmierdienst &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 6: KATEGORIE 5 (39-43), PUNKT 44 & SCHMIERDIENST ==================== -->
+    <div id="step-6" class="step">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="flex:1; margin-right:15px;">Kategorie 5: Prüfpunkte 39 – 43 (Sicherheitseinrichtungen & Funktionsprüfung)</h3>
+            <button class="outline" onclick="setSectionStatus('tbody-cat5', 'i.O.')">Alle 39–43 auf i.O.</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat5"></tbody>
+        </table>
+
+        <h3>Punkt 44 (Zusatz- / Sonderprüfung laut Liste)</h3>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th class="num-col">Nr.</th>
+                    <th style="width: 48%;">Prüfpunkt</th>
+                    <th class="status-cell">Beurteilung</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cat6"></tbody>
+        </table>
+
+        <h3>Schmierdienst (laut Excel-Tabelle)</h3>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th style="width: 52%;">Schmierdienst / Wartungspunkt</th>
+                    <th class="status-cell">Ausgeführt</th>
+                    <th>Bemerkung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Schmierdienst durchgeführt</strong> (Tragmittel / Drahtseil / Lastkette / Seiltrommel / Lagerstellen / Zahnkränze / Gelenke nach Herstellervorgabe geschmiert)</td>
+                    <td class="status-cell">
+                        <label><input type="radio" name="schmier_1" value="Ja / i.O." checked> Ja / i.O.</label>
+                        <label><input type="radio" name="schmier_1" value="Nein"> Nein</label>
+                        <label><input type="radio" name="schmier_1" value="n.v."> n.v.</label>
+                    </td>
+                    <td><input type="text" id="schmier_1_note" placeholder="Bemerkung zum Schmierdienst..."></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(5)">&larr; Zurück</button>
+            <button onclick="nextStep(7)">Weiter zum Abschluss & Unterschrift &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== SEITE 7: ABSCHLUSS & UNTERSCHRIFT ==================== -->
+    <div id="step-7" class="step">
+        <h3>Prüfergebnis, Bemerkungen & Unterschrift</h3>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Gesamtbeurteilung / Freigabe:</label>
+                <select id="p_resultStatus">
+                    <option value="Keine Mängel festgestellt – Weiterbetrieb freigegeben">✅ Keine Mängel festgestellt – Weiterbetrieb freigegeben</option>
+                    <option value="Leichte Mängel festgestellt – Behebung erforderlich">⚠️ Leichte Mängel festgestellt – Behebung erforderlich</option>
+                    <option value="Schwerwiegende Mängel – Betrieb bis Behebung untersagt!">❌ Schwerwiegende Mängel – Betrieb untersagt!</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Prüfplakette / Nächste Prüfung:</label>
+                <input type="text" id="p_nextDue" value="Oktober 2027">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Allgemeine Bemerkungen / Durchgeführte Arbeiten / Mängelbeschreibung:</label>
+            <textarea id="p_notes" rows="3" placeholder="Zusätzliche Hinweise..."></textarea>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Unterschrift Prüfer (<span id="sigLabelUser">Rawaz Mohammad</span>):</label>
+                <canvas id="sigCanvas"></canvas>
+                <button type="button" class="secondary" onclick="clearCanvas()" style="margin-top:6px; font-size:12px; padding:5px 12px;">Unterschrift löschen</button>
+            </div>
+            <div class="form-group">
+                <label>Ansprechpartner Kunde / Betreiber:</label>
+                <input type="text" id="p_clientRep" placeholder="Name Kunde vor Ort (optional)">
+                <p style="font-size: 12.5px; color: #475569; margin-top: 14px; line-height: 1.5;">
+                    Unter der Unterschrift im PDF steht automatisch der Name des eingeloggten Benutzers (<b><span id="sigInfoUser">Rawaz Mohammad</span></b>).
+                </p>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="secondary" onclick="nextStep(6)">&larr; Zurück</button>
+            <button class="accent" onclick="generateAndPrint()">🖨️ Offizielles PDF-Protokoll drucken / speichern</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DRUCK-ANSICHT (DIN A4 PDF) ==================== -->
+<div class="print-report" id="printArea">
+    <div class="report-header">
+        <!-- LOGO OBEN LINKS IM PDF -->
+        <div>
+            <svg id="defaultLogoPrint" width="185" height="52" viewBox="0 0 330 95" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 78 26 L 78 10 L 10 10 L 10 82 L 78 82 L 78 66" fill="none" stroke="#000000" stroke-width="5.5" stroke-linecap="square"/>
+                <line x1="41" y1="12" x2="41" y2="28" stroke="#000000" stroke-width="3"/>
+                <line x1="47" y1="12" x2="47" y2="28" stroke="#000000" stroke-width="3"/>
+                <path d="M 35 28 L 53 28 L 49 42 L 39 42 Z" fill="#000000"/>
+                <path d="M 44 42 L 44 48 C 44 51, 36 53, 36 61 C 36 69, 45 72, 50 67 C 53 64, 52 59, 49 57" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
+                <text x="92" y="65" font-family="'Trebuchet MS', 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="bold" fill="#000000" letter-spacing="1">elevare</text>
+            </svg>
+            <img id="customLogoPrint" src="" style="display:none; max-height: 50px; max-width: 210px;" alt="elevare Logo">
+        </div>
+        <div class="report-title-box">
+            <h1>Checkliste / Prüfprotokoll Krananlage</h1>
+            <div class="report-type-row">
+                <span id="out_chk_wartung">☑ Wartung</span>
+                <span id="out_chk_pruefung">☑ Wiederkehrende Prüfung</span>
+            </div>
+        </div>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td class="meta-label">Kunde / Werk:</td>
+            <td class="meta-val" id="out_custName"></td>
+            <td class="meta-label">Standort / Halle:</td>
+            <td class="meta-val" id="out_custLoc"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Kran-Nr. / EQ-Nr.:</td>
+            <td class="meta-val" id="out_craneNo"></td>
+            <td class="meta-label">Bauart / Krantyp:</td>
+            <td class="meta-val" id="out_craneType"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Hersteller:</td>
+            <td class="meta-val" id="out_craneBrand"></td>
+            <td class="meta-label">Fabrik-Nr. / Bj.:</td>
+            <td class="meta-val" id="out_serialYear"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Tragfähigkeit:</td>
+            <td class="meta-val" id="out_capacity"></td>
+            <td class="meta-label">Hubwerk / Steuerung:</td>
+            <td class="meta-val" id="out_hoistCtrl"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Prüfer:</td>
+            <td class="meta-val" id="out_techName"></td>
+            <td class="meta-label">Datum:</td>
+            <td class="meta-val" id="out_checkDate"></td>
+        </tr>
+    </table>
+
+    <table class="report-check-table">
+        <thead>
+            <tr>
+                <th style="width: 6%; text-align:center;">Nr.</th>
+                <th style="width: 50%;">Prüfpunkt</th>
+                <th style="width: 14%; text-align: center;">Beurteilung</th>
+                <th style="width: 30%;">Bemerkung</th>
+            </tr>
+        </thead>
+        <tbody id="out_all_items"></tbody>
+    </table>
+
+    <table class="meta-table" style="margin-top: 6px; page-break-inside: avoid;">
+        <tr>
+            <td class="meta-label">Prüfergebnis:</td>
+            <td colspan="3" style="font-weight: bold;" id="out_resultStatus"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Bemerkung:</td>
+            <td colspan="3" id="out_notes" style="white-space: pre-wrap;"></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Nächste Prüfung:</td>
+            <td colspan="3" id="out_nextDue"></td>
+        </tr>
+    </table>
+
+    <div class="report-footer">
+        <div class="sig-box">
+            <div style="font-size: 8pt; font-weight: bold; color: #000;">Unterschrift Prüfer / Sachverständiger (ELEVARE):</div>
+            <img id="out_sigImg" src="" alt="Unterschrift" style="display:none;"/>
+            <div style="border-top: 1px solid #64748b; padding-top: 3px; font-size: 8.5pt; font-weight: bold;" id="out_sigName"></div>
+        </div>
+        <div class="sig-box">
+            <div style="font-size: 8pt; font-weight: bold; color: #000;">Kenntnisnahme Kunde / Betreiber:</div>
+            <div style="height: 40px;"></div>
+            <div style="border-top: 1px solid #64748b; padding-top: 3px; font-size: 8pt;" id="out_clientRep">Datum / Unterschrift Kunde</div>
+        </div>
+    </div>
+
+    <div class="company-footer">
+        ELEVARE Krantechnik GmbH | Industrielle Krantechnik, Wartung & §8 AMVO Prüfungen | Wien
+    </div>
+</div>
+
+<script>
+    // Exakt 44 Prüfpunkte eingeteilt nach Vorgabe: 1-13, 14-21, 22-32, 33-38, 39-43 und 44
+    const default44Lines = [
+        // 1 - 13 (Kategorie 1: Dokumentation, Kranbahn, Kranbrücke & Kranfahrwerk)
+        "Prüfbuch / Kranprüfbuch, Vorprüfberichte & Betriebsanleitung",
+        "Beschilderung: Tragfähigkeitsschilder, Kran-Nr. & Richtungszeichen",
+        "Kranhauptschalter / Netztrennschalter (Funktion, Absperrbarkeit)",
+        "Kranbahn-Schienen (Verschleiß, Schienenstöße, Befestigung)",
+        "Kranbahn-Endanschläge / Puffer & Sicherheitsabstände",
+        "Kranbahn-Stromzuführung (Schleifleitung / Schleppleitung / Stromabnehmer)",
+        "Kranbrücke / Hauptträger & Kopfträger (Schweißnähte, Korrosion, Verformung)",
+        "Laufstege, Bühnen, Geländer & Aufstiege (falls vorhanden)",
+        "Kranfahrwerk: Motoren & Getriebe (Befestigung, Dichtheit, Laufgeräusch)",
+        "Kranfahrwerk: Bremsen (Funktion, Bremswirkung, Belagverschleiß)",
+        "Kranfahrwerk: Laufräder, Spurkränze & Radlagerung",
+        "Kranfahrwerk: Schienenräumer, Puffer & Radbruchstützen",
+        "Kranfahrendschalter / Vor- und Endabschaltung",
+        // 14 - 21 (Kategorie 2: Katzfahrwerk & Katzstromzuführung)
+        "Katzrahmen / Tragkonstruktion, Verschraubungen & Absturzsicherung",
+        "Katzfahrwerk: Motor & Getriebe (Befestigung, Dichtheit, Laufgeräusch)",
+        "Katzfahrwerk: Bremse (Funktion, Bremswirkung, Verschleiß)",
+        "Katzfahrwerk: Laufräder, Spurkränze & Führungsrollen",
+        "Katzfahrwerk: Endanschläge, Puffer & Schienenräumer",
+        "Katzstromzuführung: Schleppkabel, Kabelwagen / Energiekette",
+        "Zugentlastungen & Knickschutz der Katzstromzuführung",
+        "Katzfahrendschalter (Beide Fahrtrichtungen)",
+        // 22 - 32 (Kategorie 3: Hubwerk, Tragmittel & Lastaufnahmemittel)
+        "Hubwerk: Aufhängung, Gehäuse, Tragkonstruktion & Verschraubung",
+        "Hubgetriebe: Ölstand, Dichtheit, Laufgeräusche & Kupplung",
+        "Hubmotor: Befestigung, Lüfter/Kühlung & Klemmkasten",
+        "Hubwerksbremse: Bremswirkung, Lüftspiel & Bremsbelag",
+        "Zweitbremse / Sicherheitsbremse / Rutschkupplung",
+        "Seiltrommel / Kettennuss (Rillenverschleiß, Sicherheitswindungen)",
+        "Seilführung / Seilwickler / Kettenführung & Kettenkasten",
+        "Tragmittel: Drahtseil / Lastkette (Drahtbrüche, Verschleiß, Dehnung)",
+        "Seilendbefestigung / Kettenendbefestigung (Keilschloss, Festpunkt)",
+        "Unterflasche: Seilrollen, Lagerung, Fingerschutz & Traglastschild",
+        "Lasthaken (Maulweite, Abnutzung, Drehbarkeit & Hakensicherung)",
+        // 33 - 38 (Kategorie 4: Elektrische Ausrüstung & Steuerung)
+        "Schaltschrank: Zustand, Sauberkeit, Türverschluss & Schaltplan",
+        "Schütze, Relais, Frequenzumrichter, Sicherungen & Klemmen",
+        "Kabel, Leitungen, Verschraubungen & Isolationszustand",
+        "Schutzleiteranschlüsse (PE) & Erdung an der gesamten Anlage",
+        "Steuerflasche / Hängetaster (Gehäuse, Tasten, Zugentlastung)",
+        "Funkfernsteuerung (Sender, Empfänger, Tasten, Akku & Ladegerät)",
+        // 39 - 43 (Kategorie 5: Sicherheitseinrichtungen & Probelast)
+        "NOT-HALT / NOT-AUS Funktion (Steuerflasche & Funksteuerung)",
+        "Hubendschalter Oben (Betriebs- und Notendschalter)",
+        "Hubendschalter Unten (Senkbegrenzung)",
+        "Überlastsicherung / Lastmesseinrichtung",
+        "Optische / Akustische Warneinrichtungen & Kollisionsschutz / Tandem",
+        // 44 (Punkt 44)
+        "Funktionsprüfung / Probebetrieb (alle Kranbewegungen & Bremsprobe unter Last)"
+    ];
+
+    let currentLoggedUser = "Rawaz Mohammad";
+    let itemsList = [];
+
+    function performLogin() {
+        const inputVal = document.getElementById('loginUser').value.trim();
+        currentLoggedUser = inputVal || "Rawaz Mohammad";
+        localStorage.setItem('elevare_logged_user', currentLoggedUser);
+        
+        // Namen überall eintragen
+        document.getElementById('displayLoggedUser').textContent = currentLoggedUser;
+        document.getElementById('p_techName').value = currentLoggedUser;
+        document.getElementById('sigLabelUser').textContent = currentLoggedUser;
+        document.getElementById('sigInfoUser').textContent = currentLoggedUser;
+
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('appView').style.display = 'block';
+    }
+
+    function logout() {
+        document.getElementById('appView').style.display = 'none';
+        document.getElementById('loginView').style.display = 'block';
+    }
+
+    function renderAllCategories() {
+        const savedRaw = localStorage.getItem('elevare_44_items');
+        if (savedRaw) {
+            itemsList = savedRaw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+        } else {
+            itemsList = [...default44Lines];
+        }
+        // Sicherstellen, dass mindestens 44 Einträge da sind
+        while (itemsList.length < 44) {
+            itemsList.push("Prüfpunkt " + (itemsList.length + 1));
+        }
+
+        document.getElementById('excelInputArea').value = itemsList.map((t, i) => `${i+1}. ${t}`).join('\n');
+
+        const ranges = [
+            { tbody: 'tbody-cat1', start: 1, end: 13 },
+            { tbody: 'tbody-cat2', start: 14, end: 21 },
+            { tbody: 'tbody-cat3', start: 22, end: 32 },
+            { tbody: 'tbody-cat4', start: 33, end: 38 },
+            { tbody: 'tbody-cat5', start: 39, end: 43 },
+            { tbody: 'tbody-cat6', start: 44, end: 44 }
+        ];
+
+        ranges.forEach(r => {
+            const tbody = document.getElementById(r.tbody);
+            tbody.innerHTML = '';
+            for (let num = r.start; num <= r.end; num++) {
+                const text = itemsList[num - 1] || ('Prüfpunkt ' + num);
+                const id = 'item_' + num;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="num-col">${num}</td>
+                        <td>${text}</td>
+                        <td class="status-cell">
+                            <label><input type="radio" name="${id}" value="i.O." checked> i.O.</label>
+                            <label><input type="radio" name="${id}" value="Mangel"> Mangel</label>
+                            <label><input type="radio" name="${id}" value="n.v."> n.v.</label>
+                        </td>
+                        <td><input type="text" id="${id}_note" placeholder="Bemerkung..."></td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function toggleImportModal() {
+        const modal = document.getElementById('importModal');
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function saveCustomItems() {
+        const rawLines = document.getElementById('excelInputArea').value.split('\n');
+        const cleaned = rawLines.map(l => l.replace(/^\d+[\.\)\s-]*/, '').trim()).filter(l => l.length > 0);
+        localStorage.setItem('elevare_44_items', cleaned.join('\n'));
+        renderAllCategories();
+        document.getElementById('importModal').style.display = 'none';
+    }
+
+    function resetDefaultItems() {
+        localStorage.removeItem('elevare_44_items');
+        renderAllCategories();
+        document.getElementById('importModal').style.display = 'none';
+    }
+
+    function setSectionStatus(tbodyId, statusVal) {
+        const container = document.getElementById(tbodyId);
+        container.querySelectorAll(`input[type="radio"][value="${statusVal}"]`).forEach(r => r.checked = true);
+    }
+
+    function loadCustomLogo(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            localStorage.setItem('elevare_custom_logo', dataUrl);
+            applyLogo(dataUrl);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function applyLogo(dataUrl) {
+        if (!dataUrl) return;
+        document.getElementById('defaultLogoSvg').style.display = 'none';
+        document.getElementById('defaultLogoPrint').style.display = 'none';
+        const imgApp = document.getElementById('customLogoApp');
+        const imgPrint = document.getElementById('customLogoPrint');
+        imgApp.src = dataUrl;
+        imgPrint.src = dataUrl;
+        imgApp.style.display = 'block';
+        imgPrint.style.display = 'block';
+    }
+
+    // Start-Initialisierung
+    renderAllCategories();
+    document.getElementById('p_checkDate').valueAsDate = new Date();
+    const savedUser = localStorage.getItem('elevare_logged_user');
+    if (savedUser) document.getElementById('loginUser').value = savedUser;
+    const savedLogo = localStorage.getItem('elevare_custom_logo');
+    if (savedLogo) applyLogo(savedLogo);
+
+    function nextStep(step) {
+        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.step-badge').forEach(el => el.classList.remove('active'));
+        document.getElementById('step-' + step).classList.add('active');
+        document.getElementById('badge-' + step).classList.add('active');
+        window.scrollTo(0, 0);
+        if (step === 7) resizeCanvas();
+    }
+
+    // Unterschrift Canvas
+    const canvas = document.getElementById('sigCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+    let hasSignature = false;
+
+    function startPosition(e) { painting = true; hasSignature = true; draw(e); }
+    function endPosition() { painting = false; ctx.beginPath(); }
+    function draw(e) {
+        if (!painting) return;
+        e.preventDefault();
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        ctx.lineTo(clientX - rect.left, clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', endPosition);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', startPosition, {passive: false});
+    canvas.addEventListener('touchend', endPosition);
+    canvas.addEventListener('touchmove', draw, {passive: false});
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        hasSignature = false;
+    }
+
+    function resizeCanvas() {
+        if (canvas.width !== canvas.parentElement.clientWidth) {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 130;
+        }
+    }
+
+    function formatBadge(status) {
+        if (status === 'i.O.' || status === 'Ja / i.O.') return '<span class="badge-io">✓ ' + status + '</span>';
+        if (status === 'Mangel' || status === 'Nein') return '<span class="badge-mangel">✗ ' + status + '</span>';
+        return '<span class="badge-nv">– n.v.</span>';
+    }
+
+    function generateAndPrint() {
+        // Wartung & Wiederkehrende Prüfung Checkboxen
+        const isWartung = document.getElementById('chk_wartung').checked;
+        const isPruefung = document.getElementById('chk_pruefung').checked;
+        document.getElementById('out_chk_wartung').textContent = (isWartung ? '☑' : '☐') + ' Wartung';
+        document.getElementById('out_chk_pruefung').textContent = (isPruefung ? '☑' : '☐') + ' Wiederkehrende Prüfung';
+
+        // Stammdaten
+        document.getElementById('out_custName').textContent = document.getElementById('p_custName').value || '-';
+        document.getElementById('out_custLoc').textContent = document.getElementById('p_custLoc').value || '-';
+        document.getElementById('out_craneNo').textContent = document.getElementById('p_craneNo').value || '-';
+        document.getElementById('out_craneType').textContent = document.getElementById('p_craneType').value || '-';
+        document.getElementById('out_craneBrand').textContent = document.getElementById('p_craneBrand').value || '-';
+        
+        const ser = document.getElementById('p_craneSerial').value || '-';
+        const yr = document.getElementById('p_year').value || '-';
+        document.getElementById('out_serialYear').textContent = ser + ' / Bj. ' + yr;
+        document.getElementById('out_capacity').textContent = document.getElementById('p_capacity').value || '-';
+        document.getElementById('out_hoistCtrl').textContent = document.getElementById('p_hoistType').value || '-';
+
+        // Eingeloggter Benutzername bei Prüfer & unter der Unterschrift
+        document.getElementById('out_techName').textContent = currentLoggedUser;
+        document.getElementById('out_sigName').textContent = currentLoggedUser;
+
+        const clientRep = document.getElementById('p_clientRep').value;
+        document.getElementById('out_clientRep').textContent = clientRep ? ('Kenntnisnahme: ' + clientRep) : 'Datum / Unterschrift Kunde';
+
+        const rawDate = document.getElementById('p_checkDate').value;
+        document.getElementById('out_checkDate').textContent = rawDate ? rawDate.split('-').reverse().join('.') : '-';
+
+        // Kategorien 1-5 + Punkt 44 + Schmierdienst ins PDF bauen
+        const outAll = document.getElementById('out_all_items');
+        outAll.innerHTML = '';
+
+        const printSections = [
+            { title: 'Kategorie 1: Prüfpunkte 1 – 13 (Kranbahn, Kranbrücke & Kranfahrwerk)', start: 1, end: 13 },
+            { title: 'Kategorie 2: Prüfpunkte 14 – 21 (Katzfahrwerk & Katzstromzuführung)', start: 14, end: 21 },
+            { title: 'Kategorie 3: Prüfpunkte 22 – 32 (Hubwerk, Tragmittel & Lastaufnahmemittel)', start: 22, end: 32 },
+            { title: 'Kategorie 4: Prüfpunkte 33 – 38 (Elektrische Ausrüstung & Steuerung)', start: 33, end: 38 },
+            { title: 'Kategorie 5: Prüfpunkte 39 – 43 (Sicherheitseinrichtungen)', start: 39, end: 43 },
+            { title: 'Punkt 44: Funktionsprüfung / Zusatzprüfung', start: 44, end: 44 }
+        ];
+
+        printSections.forEach(sec => {
+            outAll.innerHTML += `<tr class="report-cat-row"><td colspan="4">${sec.title}</td></tr>`;
+            for (let num = sec.start; num <= sec.end; num++) {
+                const text = itemsList[num - 1] || ('Prüfpunkt ' + num);
+                const id = 'item_' + num;
+                const checkedRadio = document.querySelector(`input[name="${id}"]:checked`);
+                const status = checkedRadio ? checkedRadio.value : 'i.O.';
+                const note = document.getElementById(`${id}_note`).value || '';
+                outAll.innerHTML += `
+                    <tr>
+                        <td style="text-align:center; font-weight:bold;">${num}</td>
+                        <td>${text}</td>
+                        <td style="text-align:center;">${formatBadge(status)}</td>
+                        <td>${note}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        // Schmierdienst Zeile im PDF
+        const schmierStatus = document.querySelector('input[name="schmier_1"]:checked').value;
+        const schmierNote = document.getElementById('schmier_1_note').value || '';
+        outAll.innerHTML += `<tr class="report-cat-row"><td colspan="4">Schmierdienst</td></tr>`;
+        outAll.innerHTML += `
+            <tr>
+                <td style="text-align:center; font-weight:bold;">–</td>
+                <td><strong>Schmierdienst durchgeführt</strong> (Seil / Kette / Lagerstellen / Getriebe)</td>
+                <td style="text-align:center;">${formatBadge(schmierStatus)}</td>
+                <td>${schmierNote}</td>
+            </tr>
+        `;
+
+        document.getElementById('out_resultStatus').textContent = document.getElementById('p_resultStatus').value;
+        document.getElementById('out_notes').textContent = document.getElementById('p_notes').value || 'Keine Mängel festgestellt.';
+        document.getElementById('out_nextDue').textContent = document.getElementById('p_nextDue').value || '-';
+
+        const sigImg = document.getElementById('out_sigImg');
+        if (hasSignature) {
+            sigImg.src = canvas.toDataURL('image/png');
+            sigImg.style.display = 'block';
+        } else {
+            sigImg.style.display = 'none';
+        }
+
+        window.print();
+    }
+</script>
+
+</body>
+</html>
